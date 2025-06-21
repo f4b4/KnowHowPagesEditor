@@ -1,0 +1,47 @@
+# -----------------------------------------------------------------------------
+# docker-compose.yml — KnowHowPagesEditor
+#
+# Development: `docker compose up`
+# Production:  `docker compose -f docker-compose.prod.yml up`
+# -----------------------------------------------------------------------------
+
+services:  # React/Vite client development server
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+      target: development
+    ports:
+      - "3000:3000"  # Client dev server
+    volumes:
+      - .:/app
+      - /app/node_modules  # Prevent node_modules from being overwritten
+      - /app/server  # Exclude server directory
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3001
+    depends_on:
+      - server
+    networks:
+      - app-network
+
+  # Fastify server
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+      target: development
+    ports:
+      - "3001:3001"  # API server
+    volumes:
+      - ./server:/app
+      - /app/node_modules  # Prevent node_modules from being overwritten
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
