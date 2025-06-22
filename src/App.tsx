@@ -1,29 +1,15 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import Tree from './components/Tree'
 import { useTreeData } from './hooks/useTreeData'
+import Editor from '@monaco-editor/react'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [error, setError] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<string>('')
+  const [markdownContent, setMarkdownContent] = useState<string>('# Welcome to KnowHow Pages Editor\n\nStart editing your markdown content here...\n\n## Features\n- Syntax highlighting\n- Live preview\n- File management\n\n```javascript\nconsole.log("Hello, World!");\n```')
   
   // Use the tree data hook instead of sample data
   const { treeData, loading: treeLoading, error: treeError, refreshTree } = useTreeData()
-
-  const incrementCount = async () => {
-    setError(null)
-    try {
-      const res = await fetch('/knowhow-api/count', { method: 'POST' })
-      if (!res.ok) throw new Error('Server error')
-      const data = await res.json()
-      setCount(data.count)
-    } catch (err) {
-      setError('Failed to update count')
-    }
-  }
 
   const handleNodeSelect = (node: any) => {
     setSelectedNode(node.label)
@@ -64,31 +50,34 @@ function App() {
           <Tree data={treeData} onNodeSelect={handleNodeSelect} />
         )}
       </aside>
-      <main className="main-content">
-        <div className="content-header">
+      <main className="main-content">        <div className="content-header">
           <h1>KnowHow Pages Editor</h1>
-        </div>
-        
-        <div className="content-body">
           {selectedNode && (
             <div className="selected-info">
-              <p>Selected: <strong>{selectedNode}</strong></p>
+              <p>Editing: <strong>{selectedNode}</strong></p>
             </div>
           )}
-          
-          <div className="card">
-            <button onClick={incrementCount}>
-              count is {count}
-            </button>
-            <p>
-              Edit <code>src/App.tsx</code> and save to test HMR
-            </p>
-            {error && <p style={{color: 'red'}}>{error}</p>}
-          </div>
-          
-          <p className="read-the-docs">
-            Click on the Vite and React logos to learn more
-          </p>
+        </div>
+          <div className="content-body">
+          <Editor
+            height="70vh"
+            defaultLanguage="markdown"
+            value={markdownContent}
+            onChange={(value) => setMarkdownContent(value || '')}
+            theme="vs-dark"
+            options={{
+              minimap: { enabled: true },
+              fontSize: 14,
+              lineNumbers: 'on',
+              wordWrap: 'on',
+              automaticLayout: true,
+              scrollBeyondLastLine: false,
+              renderWhitespace: 'selection',
+              bracketPairColorization: { enabled: true },
+              folding: true,
+              foldingStrategy: 'indentation'
+            }}
+          />
         </div>
       </main>
     </div>

@@ -26,12 +26,9 @@ export function buildServer() {
   const fastify = Fastify({
     logger: true,
   });
-
   // Register CORS for convenience during local dev — allow all origins.
   fastify.register(cors, { origin: true });
 
-  // In-memory count shared across requests
-  let count = 0;
   /**
    * Register all application routes under the "/knowhow-api" prefix.
    */
@@ -112,16 +109,10 @@ export function buildServer() {
         reply.status(500);
         return { 
           error: 'Failed to write file',
-          message: error instanceof Error ? error.message : 'Unknown error'
-        };
+          message: error instanceof Error ? error.message : 'Unknown error'        };
       }
     });
 
-    // Increments and returns the current count => POST /api/count
-    api.post('/count', async () => {
-      count++;
-      return { count };
-    });
   }, { prefix: '/knowhow-api' });
 
   return fastify;
