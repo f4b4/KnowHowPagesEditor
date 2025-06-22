@@ -30,7 +30,6 @@
   min-height: 22px;
   cursor: pointer;
   color: var(--text-color, #cccccc);
-  font-size: 13px;
   transition: background-color 0.1s ease;
 }
 
