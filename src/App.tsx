@@ -2,56 +2,16 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import Tree from './components/Tree'
+import { useTreeData } from './hooks/useTreeData'
 import './App.css'
-
-// Sample tree data for demonstration
-const sampleTreeData = [
-  {
-    id: '1',
-    label: 'Pages',
-    isExpanded: true,
-    children: [
-      {
-        id: '1-1',
-        label: 'Home',
-        children: [
-          { id: '1-1-1', label: 'Introduction' },
-          { id: '1-1-2', label: 'Getting Started' }
-        ]
-      },
-      {
-        id: '1-2',
-        label: 'Documentation',
-        isExpanded: true,
-        children: [
-          { id: '1-2-1', label: 'API Reference' },
-          { id: '1-2-2', label: 'Examples' }
-        ]
-      }
-    ]
-  },
-  {
-    id: '2',
-    label: 'Templates',
-    children: [
-      { id: '2-1', label: 'Basic Template' },
-      { id: '2-2', label: 'Advanced Template' }
-    ]
-  },
-  {
-    id: '3',
-    label: 'Assets',
-    children: [
-      { id: '3-1', label: 'Images' },
-      { id: '3-2', label: 'Documents' }
-    ]
-  }
-]
 
 function App() {
   const [count, setCount] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<string>('')
+  
+  // Use the tree data hook instead of sample data
+  const { treeData, loading: treeLoading, error: treeError, refreshTree } = useTreeData()
 
   const incrementCount = async () => {
     setError(null)
@@ -68,11 +28,41 @@ function App() {
   const handleNodeSelect = (node: any) => {
     setSelectedNode(node.label)
   }
-
   return (
     <div className="app-container">
       <aside className="sidebar">
-        <Tree data={sampleTreeData} onNodeSelect={handleNodeSelect} />
+        {treeLoading ? (
+          <div className="tree-container">
+            <h3 className="tree-title">Navigation</h3>
+            <div style={{ padding: '16px', color: 'var(--text-color, #cccccc)' }}>
+              Loading content tree...
+            </div>
+          </div>
+        ) : treeError ? (
+          <div className="tree-container">
+            <h3 className="tree-title">Navigation</h3>
+            <div style={{ padding: '16px', color: 'var(--error-color, #ff6b6b)' }}>
+              Error: {treeError}
+              <br />
+              <button 
+                onClick={refreshTree}
+                style={{ 
+                  marginTop: '8px', 
+                  padding: '4px 8px', 
+                  backgroundColor: 'var(--button-bg, #0078d4)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Tree data={treeData} onNodeSelect={handleNodeSelect} />
+        )}
       </aside>
       <main className="main-content">
         <div className="content-header">

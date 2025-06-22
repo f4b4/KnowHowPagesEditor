@@ -6,6 +6,8 @@ interface TreeNode {
   label: string;
   children?: TreeNode[];
   isExpanded?: boolean;
+  path: string;
+  type: 'file' | 'directory';
 }
 
 interface TreeProps {
@@ -49,9 +51,11 @@ const TreeItem = ({ node, onNodeSelect, onToggle, level }: TreeItemProps) => {
             }}
           >
             {node.isExpanded ? '▼' : '▶'}
-          </button>
-        )}
+          </button>        )}
         {!hasChildren && <span className="tree-spacer"></span>}
+        <span className="tree-icon">
+          {node.type === 'directory' ? '📁' : '📄'}
+        </span>
         <span className="tree-label">{node.label}</span>
       </div>
       {hasChildren && node.isExpanded && (
