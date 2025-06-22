@@ -88,7 +88,7 @@ Goal: Edit a page and commit the change to Git.
 
 1. Add protected route /edit/[...slug].  
 2. Embed Monaco editor with markdown language.  
-3. Provide "Save" → calls API route /api/git/commit:  
+3. Provide "Save" → calls API route /knowhow-api/git/commit:  
    • Writes file to repo working tree.  
    • Runs `git add` & `git commit -m 'edit page'`.  
    • Option A (client-side): use isomorphic-git in browser + push via GitHub PAT.  
@@ -292,9 +292,9 @@ Goal: Server can list, read, and save markdown files under mounted `/content` vo
 1. Mount local clone of **KnowHowPages** into the container at `/workspace/KnowHowPages`.
 2. Add utility `fs-router.ts` to walk `/content` and return tree (reuse logic from main site manifest).
 3. Implement REST endpoints:
-   • `GET /api/tree` → JSON of folders/pages.  
-   • `GET /api/file?path=` → raw markdown.  
-   • `PUT /api/file` body `{ path, content }` → writes file.
+   • `GET /knowhow-api/tree` → JSON of folders/pages.  
+   • `GET /knowhow-api/file?path=` → raw markdown.  
+   • `PUT /knowhow-api/file` body `{ path, content }` → writes file.
 4. Use Zod for request/response validation.
 
 Milestone demo: React sidebar shows folder tree; clicking loads markdown into read-only area.
@@ -308,7 +308,7 @@ Goal: In-browser editing with syntax highlighting and live preview.
 
 1. Install `@monaco-editor/react` and `react-markdown`, `rehype-prism`.
 2. Build split-pane layout (Resizable) — editor left, preview right.
-3. Implement auto-save indicator + Ctrl-S shortcut → calls `PUT /api/file`.
+3. Implement auto-save indicator + Ctrl-S shortcut → calls `PUT /knowhow-api/file`.
 4. Persist last open tab in `localStorage`.
 
 Milestone demo: User edits page, presses Save, file overwrites on disk.
@@ -321,7 +321,7 @@ AI Pairing Checklist
 Goal: Saving triggers git add → commit → push to GitHub.
 
 1. Install `simple-git` in backend.
-2. POST `/api/git/commit` body `{ path, message, author }` (called implicitly by save handler).
+2. POST `/knowhow-api/git/commit` body `{ path, message, author }` (called implicitly by save handler).
 3. Steps:
    • `git add {path}`  
    • `git commit -m message --author="{author}"`  
@@ -340,7 +340,7 @@ AI Pairing Checklist
 Goal: Restrict editing to authorized users.
 
 1. Add environment variable `BASIC_AUTH_USERS` (csv user:password-hash).
-2. Fastify `@fastify/basic-auth` plugin to protect all `/api/*` routes.
+2. Fastify `@fastify/basic-auth` plugin to protect all `/knowhow-api/*` routes.
 3. Future: swap to GitHub OAuth App (login → get PAT → commit as user).
 
 Milestone demo: Unauthorized browser gets login prompt; after auth, editor loads.
