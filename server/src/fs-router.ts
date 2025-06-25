@@ -30,14 +30,14 @@ export async function buildContentTree(rootPath: string = CONTENT_BASE_PATH): Pr
   if (!stats.isDirectory()) {
     return {
       name,
-      path: rootPath,
+      path: getRelativePath(rootPath),
       type: 'file'
     };
   }
 
   const node: TreeNode = {
     name,
-    path: rootPath,
+    path: getRelativePath(rootPath),
     type: 'directory',
     children: []
   };
@@ -68,7 +68,7 @@ export async function buildContentTree(rootPath: string = CONTENT_BASE_PATH): Pr
       } else if (extname(entry.name).toLowerCase() === '.md') {
         const fileNode: TreeNode = {
           name: basename(entry.name, '.md'),
-          path: entryPath,
+          path: getRelativePath(entryPath),
           type: 'file'
         };
         node.children!.push(fileNode);
