@@ -64,7 +64,6 @@
   padding: 0.8rem;
   background-color: var(--info-bg, #2d2d30);
   border-radius: 8px;
-  border-left: 4px solid #646cff;
 }
 
 .selected-info p {
@@ -140,5 +139,99 @@
   
   .content-body {
     padding: 1rem;
+  }
+}
+
+/* Save Button Styles */
+.save-button-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.save-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #646cff, #5a5fcf);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(100, 108, 255, 0.3);
+  transition: all 0.2s ease;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.save-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a5fcf, #4e54c8);
+  box-shadow: 0 6px 16px rgba(100, 108, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.save-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(100, 108, 255, 0.3);
+}
+
+.save-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.save-button.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.save-button.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.check-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.error-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.save-icon {
+  font-size: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile responsive for save button */
+@media (max-width: 768px) {
+  .save-button-container {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .save-button {
+    padding: 10px 16px;
+    font-size: 12px;
+    min-width: 80px;
   }
 }

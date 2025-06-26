@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Tree from './components/Tree'
 import { useTreeData } from './hooks/useTreeData'
 import Editor from '@monaco-editor/react'
@@ -9,9 +9,28 @@ function App() {
   const [markdownContent, setMarkdownContent] = useState<string>('# Welcome to KnowHow Pages Editor\n\nStart editing your markdown content here...\n\n## Features\n- Syntax highlighting\n- Live preview\n- File management\n\n```javascript\nconsole.log("Hello, World!");\n```')
   const [isLoadingContent, setIsLoadingContent] = useState<boolean>(false)
   const [selectedFilePath, setSelectedFilePath] = useState<string>('')
+  const [isSaving, setIsSaving] = useState<boolean>(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
   
   // Use the tree data hook instead of sample data
   const { treeData, loading: treeLoading, error: treeError, refreshTree } = useTreeData()
+
+  // Keyboard shortcut for saving (Ctrl+S)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault()
+        if (selectedFilePath) {
+          saveFileContent()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedFilePath, markdownContent])
 
   // Function to fetch file content
   const fetchFileContent = async (filePath: string) => {
@@ -42,6 +61,44 @@ function App() {
       fetchFileContent(node.path)
     }
   }
+
+  // Function to save file content
+  const saveFileContent = async () => {
+    if (!selectedFilePath) {
+      console.error('No file selected to save')
+      return
+    }
+
+    setIsSaving(true)
+    setSaveStatus('idle')
+
+    try {
+      const response = await fetch('/knowhow-api/file', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          path: selectedFilePath,
+          content: markdownContent
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      setSaveStatus('success')
+      setTimeout(() => setSaveStatus('idle'), 3000) // Clear success message after 3 seconds
+    } catch (error) {
+      console.error('Error saving file:', error)
+      setSaveStatus('error')
+      setTimeout(() => setSaveStatus('idle'), 5000) // Clear error message after 5 seconds
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="app-container">
       <aside className="sidebar">
@@ -124,6 +181,39 @@ function App() {
             />
           )}
         </div>
+        
+        {/* Save Button */}
+        {selectedFilePath && (
+          <div className="save-button-container">
+            <button
+              className={`save-button ${saveStatus}`}
+              onClick={saveFileContent}
+              disabled={isSaving || !selectedFilePath}
+            >
+              {isSaving ? (
+                <>
+                  <span className="spinner"></span>
+                  Saving...
+                </>
+              ) : saveStatus === 'success' ? (
+                <>
+                  <span className="check-icon">✓</span>
+                  Saved!
+                </>
+              ) : saveStatus === 'error' ? (
+                <>
+                  <span className="error-icon">✗</span>
+                  Error
+                </>
+              ) : (
+                <>
+                  <span className="save-icon">💾</span>
+                  Save
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </main>
     </div>
   )

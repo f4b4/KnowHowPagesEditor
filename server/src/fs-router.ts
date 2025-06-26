@@ -1,5 +1,6 @@
 import { readdir, stat, readFile, writeFile } from 'fs/promises';
 import { join, relative, extname, basename } from 'path';
+import simpleGit from 'simple-git';
 
 export interface TreeNode {
   name: string;
@@ -18,6 +19,11 @@ export interface FileItem {
  * Content directory relative to the KnowHowPages repository
  */
 const CONTENT_BASE_PATH = join(process.cwd(), '..', '..', 'KnowHowPages', 'content');
+
+/**
+ * KnowHowPages repository root directory
+ */
+const REPO_BASE_PATH = join(process.cwd(), '..', '..', 'KnowHowPages');
 
 /**
  * Recursively builds a tree structure mirroring the directory layout.
@@ -142,6 +148,10 @@ export async function writeMarkdownFile(relativePath: string, content: string): 
 
   try {
     await writeFile(fullPath, content, 'utf-8');
+    
+    // After successfully writing the file, commit and push to git
+    const relativeRepoPath = relative(REPO_BASE_PATH, fullPath);
+    await commitAndPushChanges(relativeRepoPath);
   } catch (error) {
     throw new Error(`Failed to write file: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
@@ -168,4 +178,52 @@ export function flattenTree(node: TreeNode, basePath: string = CONTENT_BASE_PATH
   }
   
   return items;
+}
+
+/**
+ * Commits and pushes changes to the git repository
+ */
+/**
+ * Commits and pushes changes to the git repository
+ */
+async function commitAndPushChanges(filePath: string): Promise<void> {
+  const git = simpleGit(REPO_BASE_PATH);
+  
+  try {
+    // Check if we're in a git repository
+    const isRepo = await git.checkIsRepo();
+    if (!isRepo) {
+      throw new Error('Directory is not a git repository');
+    }
+    
+    // Add the specific file to staging
+    await git.add(filePath);
+    
+    // Check if there are any changes to commit
+    const status = await git.status();
+    if (status.files.length === 0) {
+      console.log('No changes to commit');
+      return;
+    }
+    
+    // Commit the changes with a descriptive message
+    const fileName = basename(filePath);
+    const commitMessage = `Update ${fileName} via KnowHowPagesEditor`;
+    await git.commit(commitMessage);
+    
+    // Check if remote exists before pushing
+    const remotes = await git.getRemotes(true);
+    if (remotes.length === 0) {
+      console.log('No remote repository configured, skipping push');
+      return;
+    }
+    
+    // Push to the remote repository
+    await git.push();
+    
+    console.log(`Successfully committed and pushed changes for ${fileName}`);
+  } catch (error) {
+    console.error('Git operation failed:', error);
+    throw new Error(`Failed to commit and push changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
