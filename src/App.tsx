@@ -11,7 +11,7 @@ function App() {
   const [selectedFilePath, setSelectedFilePath] = useState<string>('')
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  
+
   // Use the tree data hook instead of sample data
   const { treeData, loading: treeLoading, error: treeError, refreshTree } = useTreeData()
 
@@ -37,11 +37,11 @@ function App() {
     setIsLoadingContent(true)
     try {
       const response = await fetch(`/knowhow-api/file?path=${encodeURIComponent(filePath)}`)
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
+
       const data = await response.json()
       setMarkdownContent(data.content || '')
       setSelectedFilePath(filePath)
@@ -55,7 +55,7 @@ function App() {
 
   const handleNodeSelect = (node: any) => {
     setSelectedNode(node.label)
-    
+
     // If it's a file (not a directory), load its content
     if (node.type === 'file' && node.path) {
       fetchFileContent(node.path)
@@ -101,120 +101,121 @@ function App() {
 
   return (
     <div className="app-container">
-      <aside className="sidebar">
-        {treeLoading ? (
-          <div className="tree-container">
-            <h3 className="tree-title">Navigation</h3>
-            <div style={{ padding: '16px', color: 'var(--text-color, #cccccc)' }}>
-              Loading content tree...
-            </div>
+      <header className="app-header">
+        <h1>KnowHow Pages Editor</h1>
+        {selectedNode && (
+          <div className="selected-info">
+            <p>Editing: <strong>{selectedNode}</strong></p>
+            {selectedFilePath && (
+              <p style={{ fontSize: '0.9em', opacity: 0.8 }}>
+                Path: {selectedFilePath}
+              </p>
+            )}
           </div>
-        ) : treeError ? (
-          <div className="tree-container">
-            <h3 className="tree-title">Navigation</h3>
-            <div style={{ padding: '16px', color: 'var(--error-color, #ff6b6b)' }}>
-              Error: {treeError}
-              <br />
-              <button 
-                onClick={refreshTree}
-                style={{ 
-                  marginTop: '8px', 
-                  padding: '4px 8px', 
-                  backgroundColor: 'var(--button-bg, #0078d4)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer'
-                }}
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        ) : (
-          <Tree data={treeData} onNodeSelect={handleNodeSelect} />
         )}
-      </aside>
-      <main className="main-content">        <div className="content-header">
-          <h1>KnowHow Pages Editor</h1>
-          {selectedNode && (
-            <div className="selected-info">
-              <p>Editing: <strong>{selectedNode}</strong></p>
-              {selectedFilePath && (
-                <p style={{ fontSize: '0.9em', opacity: 0.8 }}>
-                  Path: {selectedFilePath}
-                </p>
-              )}
+      </header>
+      <div className="app-content">
+        <aside className="sidebar">
+          {treeLoading ? (
+            <div className="tree-container">
+              <div style={{ padding: '16px', color: 'var(--text-color, #cccccc)' }}>
+                Loading content tree...
+              </div>
             </div>
-          )}
-        </div>
-          <div className="content-body">
-          {isLoadingContent ? (
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              height: '70vh',
-              color: 'var(--text-color, #cccccc)'
-            }}>
-              Loading file content...
+          ) : treeError ? (
+            <div className="tree-container">
+              <div style={{ padding: '16px', color: 'var(--error-color, #ff6b6b)' }}>
+                Error: {treeError}
+                <br />
+                <button
+                  onClick={refreshTree}
+                  style={{
+                    marginTop: '8px',
+                    padding: '4px 8px',
+                    backgroundColor: 'var(--button-bg, #0078d4)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '3px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
             </div>
           ) : (
-            <Editor
-              height="70vh"
-              defaultLanguage="markdown"
-              value={markdownContent}
-              onChange={(value) => setMarkdownContent(value || '')}
-              theme="vs-dark"
-              options={{
-                minimap: { enabled: true },
-                fontSize: 14,
-                lineNumbers: 'on',
-                wordWrap: 'on',
-                automaticLayout: true,
-                scrollBeyondLastLine: false,
-                renderWhitespace: 'selection',
-                bracketPairColorization: { enabled: true },
-                folding: true,
-                foldingStrategy: 'indentation'
-              }}
-            />
+            <Tree data={treeData} onNodeSelect={handleNodeSelect} />
           )}
-        </div>
-        
-        {/* Save Button */}
-        {selectedFilePath && (
-          <div className="save-button-container">
-            <button
-              className={`save-button ${saveStatus}`}
-              onClick={saveFileContent}
-              disabled={isSaving || !selectedFilePath}
-            >
-              {isSaving ? (
-                <>
-                  <span className="spinner"></span>
-                  Saving...
-                </>
-              ) : saveStatus === 'success' ? (
-                <>
-                  <span className="check-icon">✓</span>
-                  Saved!
-                </>
-              ) : saveStatus === 'error' ? (
-                <>
-                  <span className="error-icon">✗</span>
-                  Error
-                </>
+        </aside>
+        <main className="main-content">
+          <div className="content-body">
+            <div className="editor-container">
+              {isLoadingContent ? (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  color: 'var(--text-color, #cccccc)'
+                }}>
+                  Loading file content...
+                </div>
               ) : (
-                <>
-                  <span className="save-icon">💾</span>
-                  Save
-                </>
+                <Editor
+                  defaultLanguage="markdown"
+                  value={markdownContent}
+                  onChange={(value) => setMarkdownContent(value || '')}
+                  theme="vs-dark"
+                  options={{
+                    minimap: { enabled: true },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    wordWrap: 'on',
+                    automaticLayout: true,
+                    scrollBeyondLastLine: false,
+                    renderWhitespace: 'selection',
+                    bracketPairColorization: { enabled: true },
+                    folding: true,
+                    foldingStrategy: 'indentation'
+                  }}
+                />
               )}
-            </button>
+            </div>
+            {/* Save Button */}
+            {selectedFilePath && (
+              <div className="save-button-container">
+                <button
+                  className={`save-button ${saveStatus}`}
+                  onClick={saveFileContent}
+                  disabled={isSaving || !selectedFilePath}
+                >
+                  {isSaving ? (
+                    <>
+                      <span className="spinner"></span>
+                      Saving...
+                    </>
+                  ) : saveStatus === 'success' ? (
+                    <>
+                      <span className="check-icon">✓</span>
+                      Saved!
+                    </>
+                  ) : saveStatus === 'error' ? (
+                    <>
+                      <span className="error-icon">✗</span>
+                      Error
+                    </>
+                  ) : (
+                    <>
+                      <span className="save-icon">💾</span>
+                      Save
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </main>
+        </main>
+      </div>
     </div>
   )
 }

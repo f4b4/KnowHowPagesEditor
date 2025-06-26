@@ -23,8 +23,23 @@
 /* App layout styles */
 .app-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
+}
+
+.app-header {
+  text-align: center;
+  border-bottom: 1px solid var(--border-color, #333);
+  background-color: var(--header-bg, #242424);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -54,16 +69,22 @@
 
 .content-body {
   flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  justify-content: flex-end;
+}
+
+.editor-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--main-bg, #1a1a1a);
 }
 
 .selected-info {
-  margin-bottom: 1rem;
   padding: 0.8rem;
   background-color: var(--info-bg, #2d2d30);
-  border-radius: 8px;
 }
 
 .selected-info p {
@@ -120,11 +141,12 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .app-container {
+  .app-content {
     flex-direction: column;
   }
   
   .sidebar {
+    display: none;
     width: 100%;
     height: 200px;
     max-width: none;
@@ -132,22 +154,18 @@
     border-right: none;
     border-bottom: 1px solid var(--border-color, #333);
   }
-  
-  .content-header {
-    padding: 1rem;
-  }
-  
-  .content-body {
-    padding: 1rem;
-  }
 }
 
 /* Save Button Styles */
 .save-button-container {
-  position: fixed;
+  /* position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 1000;
+  z-index: 1000; */
+  padding: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .save-button {

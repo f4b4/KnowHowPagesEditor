@@ -96,7 +96,6 @@ export const Tree = ({ data, onNodeSelect }: TreeProps) => {
 
   return (
     <div className="tree-container">
-      <h3 className="tree-title">Navigation</h3>
       <div className="tree">
         {treeData.map((node) => (
           <TreeItem
