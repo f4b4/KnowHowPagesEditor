@@ -26,6 +26,12 @@ const CONTENT_BASE_PATH = join(process.cwd(), '..', '..', 'KnowHowPages', 'conte
 const REPO_BASE_PATH = join(process.cwd(), '..', '..', 'KnowHowPages');
 
 /**
+ * GitHub configuration from environment variables
+ */
+const GITHUB_USERNAME = process.env.GITHUB_USERNAME;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+/**
  * Recursively builds a tree structure mirroring the directory layout.
  * Similar to the Python build_tree function in generate.py
  */
@@ -195,6 +201,9 @@ async function commitAndPushChanges(filePath: string): Promise<void> {
     if (!isRepo) {
       throw new Error('Directory is not a git repository');
     }
+
+    // Configure Git user if not already set
+    await configureGitUser(git);
     
     // Add the specific file to staging
     await git.add(filePath);
@@ -217,6 +226,9 @@ async function commitAndPushChanges(filePath: string): Promise<void> {
       console.log('No remote repository configured, skipping push');
       return;
     }
+
+    // Configure remote URL with authentication if token is available
+    await configureRemoteAuth(git);
     
     // Push to the remote repository
     await git.push();
@@ -225,5 +237,65 @@ async function commitAndPushChanges(filePath: string): Promise<void> {
   } catch (error) {
     console.error('Git operation failed:', error);
     throw new Error(`Failed to commit and push changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Configures Git user information
+ */
+async function configureGitUser(git: any): Promise<void> {
+  try {
+    // Check if user.name is already configured
+    const userName = await git.getConfig('user.name').catch(() => null);
+    const userEmail = await git.getConfig('user.email').catch(() => null);
+    
+    if (!userName && GITHUB_USERNAME) {
+      await git.addConfig('user.name', GITHUB_USERNAME);
+      console.log(`Set git user.name to ${GITHUB_USERNAME}`);
+    }
+    
+    if (!userEmail && GITHUB_USERNAME) {
+      // Use GitHub's noreply email format
+      const email = `${GITHUB_USERNAME}@users.noreply.github.com`;
+      await git.addConfig('user.email', email);
+      console.log(`Set git user.email to ${email}`);
+    }
+  } catch (error) {
+    console.warn('Failed to configure git user:', error);
+  }
+}
+
+/**
+ * Configures remote URL with authentication token
+ */
+async function configureRemoteAuth(git: any): Promise<void> {
+  if (!GITHUB_TOKEN || !GITHUB_USERNAME) {
+    console.log('GitHub token or username not configured, using existing remote configuration');
+    return;
+  }
+
+  try {
+    const remotes = await git.getRemotes(true);
+    const origin = remotes.find((remote: any) => remote.name === 'origin');
+    
+    if (origin && origin.refs.push) {
+      const pushUrl = origin.refs.push;
+      
+      // Check if it's a GitHub HTTPS URL
+      if (pushUrl.includes('github.com') && pushUrl.startsWith('https://')) {
+        // Extract repository path from URL
+        const repoMatch = pushUrl.match(/github\.com\/(.+)\.git$/);
+        if (repoMatch) {
+          const repoPath = repoMatch[1];
+          const authenticatedUrl = `https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${repoPath}.git`;
+          
+          // Set the authenticated URL for pushing
+          await git.remote(['set-url', 'origin', authenticatedUrl]);
+          console.log('Configured remote origin with authentication token');
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to configure remote authentication:', error);
   }
 }
