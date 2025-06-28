@@ -11,6 +11,7 @@ function App() {
   const [selectedFilePath, setSelectedFilePath] = useState<string>('')
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false)
 
   // Use the tree data hook instead of sample data
   const { treeData, loading: treeLoading, error: treeError, refreshTree } = useTreeData()
@@ -31,6 +32,27 @@ function App() {
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [selectedFilePath, markdownContent])
+
+  // Close mobile sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMobileSidebarOpen && window.innerWidth <= 768) {
+        const sidebar = document.querySelector('.sidebar')
+        const menuBtn = document.querySelector('.menu-btn')
+        
+        if (sidebar && menuBtn && 
+            !sidebar.contains(event.target as Node) && 
+            !menuBtn.contains(event.target as Node)) {
+          setIsMobileSidebarOpen(false)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMobileSidebarOpen])
 
   // Function to fetch file content
   const fetchFileContent = async (filePath: string) => {
@@ -60,6 +82,13 @@ function App() {
     if (node.type === 'file' && node.path) {
       fetchFileContent(node.path)
     }
+
+    // Close mobile sidebar when a node is selected
+    setIsMobileSidebarOpen(false)
+  }
+
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarOpen(!isMobileSidebarOpen)
   }
 
   // Function to save file content
@@ -101,6 +130,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <button className="menu-btn" onClick={toggleMobileSidebar}>☰</button>
       <header className="app-header">
         <h1>KnowHow Pages Editor</h1>
         {selectedNode && (
@@ -115,7 +145,7 @@ function App() {
         )}
       </header>
       <div className="app-content">
-        <aside className="sidebar">
+        <aside className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
           {treeLoading ? (
             <div className="tree-container">
               <div style={{ padding: '16px', color: 'var(--text-color, #cccccc)' }}>
